@@ -38,14 +38,14 @@ gsutil -m cp -r gs://waymo_open_dataset_v_1_2_0_individual_files/validation/ ${H
 gsutil -m cp -r gs://waymo_open_dataset_v_1_2_0_individual_files/testing/ ${HOME}/data/waymotfrecord/
 ```
 
-## Usage
+## Conversion
 
 ### WaymoCOCO f0 (frame 0)
 
 The Waymo Open Dataset is large, but for many cases, it's too large.
 Using its subsets is useful when you would like to:
 * do much trial and error before full training.
-* evaluate the robustness of your method on the second dataset other than COCO.
+* evaluate the generalization of your method on the second dataset other than COCO.
 
 This converter supports to extract 1/10 size dataset based on the ones place of frame index (e.g., frames 0, 10, 20, ..., 190).
 
@@ -113,6 +113,63 @@ python convert_waymo_to_coco.py \
 ### Other options
 
 Please see [convert_waymo_to_coco.py](convert_waymo_to_coco.py).
+
+
+## Creating symlinks (optional)
+
+If you prepared WaymoCOCO f0 and WaymoCOCO full, the directory structure is as follows.
+
+```
+${HOME}/data
+├── waymococo_f0
+│   ├── annotations
+│   ├── test2020
+│   ├── train2020
+│   └── val2020
+└── waymococo_full
+    ├── annotations
+    ├── test2020
+    ├── train2020
+    └── val2020
+```
+
+Even if you use full training set for training, f0val is sufficient for validation.
+It is useful to create symlinks for that.
+
+``` bash
+mkdir -p ${HOME}/data/waymococo/annotations
+ln -s ${HOME}/data/waymococo_full/annotations/image_info_test2020.json ${HOME}/data/waymococo/annotations/image_info_test2020.json
+ln -s ${HOME}/data/waymococo_full/annotations/instances_train2020.json ${HOME}/data/waymococo/annotations/instances_train2020.json
+ln -s ${HOME}/data/waymococo_f0/annotations/instances_val2020.json ${HOME}/data/waymococo/annotations/instances_val2020.json
+ln -s ${HOME}/data/waymococo_full/test2020 ${HOME}/data/waymococo/test2020
+ln -s ${HOME}/data/waymococo_full/train2020 ${HOME}/data/waymococo/train2020
+ln -s ${HOME}/data/waymococo_f0/val2020 ${HOME}/data/waymococo/val2020
+```
+
+<!--
+```
+${HOME}/data
+└── waymococo
+    ├── annotations
+    │   ├── image_info_test2020.json -> ${HOME}/data/waymococo_full/annotations/image_info_test2020.json
+    │   ├── instances_train2020.json -> ${HOME}/data/waymococo_full/annotations/instances_train2020.json
+    │   └── instances_val2020.json -> ${HOME}/data/waymococo_f0/annotations/instances_val2020.json
+    ├── test2020 -> ${HOME}/data/waymococo_full/test2020
+    ├── train2020 -> ${HOME}/data/waymococo_full/train2020
+    └── val2020 -> ${HOME}/data/waymococo_f0/val2020
+```
+-->
+
+If you use mmdetection, it is recommended to create symlinks in your mmdetection directory.  
+
+``` bash
+ln -s ${HOME}/data/waymococo_f0 ${MMDET_DIR}/data/waymococo_f0
+ln -s ${HOME}/data/waymococo_full ${MMDET_DIR}/data/waymococo_full
+ln -s ${HOME}/data/waymococo ${MMDET_DIR}/data/waymococo
+# or simply
+ln -s ${HOME}/data ${MMDET_DIR}/data
+```
+
 
 ## Acknowledgements
 
